@@ -6,9 +6,13 @@
 #define LADO 20
 #define MAX_COLUNAS 30
 #define MAX_LINHAS 20
+#define M_MAX 8
+
+//Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo3.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 typedef struct posicao{
     int x, y, desY, desX;
+    char tipo; //T se for uma toupeira, J se for o jogador
 }POSICAO;
 
 void desenhaMapa(char mapa[][MAX_COLUNAS]){
@@ -37,8 +41,11 @@ int podeMover(POSICAO entidade, int largura, int altura, char mapa[][MAX_COLUNAS
     int pode = 0;
     int posFimX = entidade.x/LADO + entidade.desX;
     int posFimY = entidade.y/LADO + entidade.desY;
-    if (mapa[posFimY][posFimX] == ' ' || mapa[posFimY][posFimX] == 'P' || mapa[posFimY][posFimX] == 'T'){
+    if ((mapa[posFimY][posFimX] == ' ') || (mapa[posFimY][posFimX] == 'J') || (mapa[posFimY][posFimX] == 'T')){
         pode = 1;
+        if (entidade.tipo == 'T' && mapa[posFimY][posFimX] == 'S'){
+        	pode = 1;
+        }
     }
     return pode;
 }
@@ -50,6 +57,7 @@ void move(POSICAO entidade, POSICAO *pEntidade){
 
 int main(){
     POSICAO jogador;
+    POSICAO toupeiras[M_MAX];
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS] = {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
                                           '#','J',' ',' ',' ',' ',' ','S','#',' ','T',' ',' ',' ','S','S','S','S','O','O','S','S',' ','#',' ','S','S','S','S','#',
@@ -75,8 +83,9 @@ int main(){
     for(i=0; i<MAX_LINHAS; i++){
                 for(j=0; j<MAX_COLUNAS; j++){
                     if(mapa[i][j]=='J'){
-                        jogador.x = i*20;
-                        jogador.y = j*20;
+                        jogador.x = j*20;
+                        jogador.y = i*20;
+                        jogador.tipo = 'J';
                     }
                 }
             }

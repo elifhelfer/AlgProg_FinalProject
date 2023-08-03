@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#define LARGURA 600
-#define ALTURA 400
-#define LADO 20
+#define LARGURA 900
+#define ALTURA 600
+#define LADO 30
 #define MAX_COLUNAS 30
 #define MAX_LINHAS 20
-#define M_MAX 8
+#define M_MAX 200
+#define VELOCIDADE 10
 
 //Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo4.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
@@ -92,6 +93,7 @@ int main(){
     TOUPEIRA toupeiras[M_MAX];
     jogador.posicao.desX = 0;
     jogador.posicao.desY = 0;
+    int tempo = 0;
     int toupeira_n = 0;
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS] = {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
@@ -101,9 +103,9 @@ int main(){
                                           '#','#','#','#','#','#','#',' ',' ',' ',' ','S','S',' ',' ',' ','S','S','S','S','S','S',' ',' ',' ','S','S','S','S','#',
                                           '#','E','O','O','S','S','#','#','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ','#',' ','S','S',' ',' ','#',
                                           '#','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ','S','S','S','S','S','S',' ','#',' ',' ','A',' ',' ','#',
-                                          '#',' ',' ','T',' ',' ',' ',' ',' ',' ',' ','A',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#',' ',' ','T','S','S',' ','#',
-                                          '#','S','O','S','S','S','O','S',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#',' ',' ',' ','S','S','S',' ','#',
-                                          '#','S','S','S','O','O','O','S','S','S',' ',' ',' ',' ','#','#','#','#','#','#','#',' ',' ',' ',' ','S','O','O',' ','#',
+                                          '#',' ',' ','T',' ',' ',' ',' ',' ',' ',' ','A',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#','#',' ','T','S','S',' ','#',
+                                          '#','S','O','S','S','S','O','S',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#','#',' ',' ','S','S','S',' ','#',
+                                          '#','S','S','S','O','O','O','S','S','S',' ',' ',' ',' ','#','#','#','#','#','#','#','#',' ',' ',' ','S','O','O',' ','#',
                                           '#','O','S','S','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ',' ','T',' ',' ',' ',' ',' ',' ',' ',' ','#',
                                           '#','#','#','#','#','#','#','#','#','#','#','#','#','A',' ','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
                                           '#','T','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','S','S','S','E','#',
@@ -118,12 +120,12 @@ int main(){
     for(i=0; i<MAX_LINHAS; i++){
                 for(j=0; j<MAX_COLUNAS; j++){
                     if(mapa[i][j]=='J'){
-                        jogador.posicao.x = j*20;
-                        jogador.posicao.y = i*20;
+                        jogador.posicao.x = j*LADO;
+                        jogador.posicao.y = i*LADO;
                     }
                     if(mapa[i][j]=='T'){
-                        toupeiras[toupeira_n].posicao.x = j*20;
-                        toupeiras[toupeira_n].posicao.y = i*20;
+                        toupeiras[toupeira_n].posicao.x = j*LADO;
+                        toupeiras[toupeira_n].posicao.y = i*LADO;
                         toupeiras[toupeira_n].contPassos = 0;
                         toupeiraRand(&toupeiras[toupeira_n].posicao);
                         toupeira_n++;
@@ -151,14 +153,18 @@ int main(){
             jogador.posicao.desX = 0;
             jogador.posicao.desY = 1;
         }
-        if(podeMoverJ(jogador.posicao, 600, 400, mapa) == 1){
+        if(podeMoverJ(jogador.posicao, LARGURA, ALTURA, mapa) == 1){
             move(&jogador.posicao);
             jogador.posicao.desX = 0;
             jogador.posicao.desY = 0;
         }
+        tempo++;
         for(i=0; i<toupeira_n; i++){
-            moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, 600, 400, mapa));
+            if (tempo == VELOCIDADE){
+            moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa));
+            }
         }
+        if (tempo == VELOCIDADE) tempo = 0;
         BeginDrawing();
         ClearBackground(RAYWHITE);
         desenhaMapa(mapa);

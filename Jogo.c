@@ -12,9 +12,8 @@
 #define VELOCIDADE 10
 
 //Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo4.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-
 typedef struct posicao{
-    int x, y, desY, desX;
+    int x, y, desY, desX, sentido;
 }POSICAO;
 
 typedef struct toupeira{
@@ -88,7 +87,13 @@ void moveToupeira(TOUPEIRA *pToupeira, int pode){
     }
 }
 
+void moveTiro(POSICAO *pPosicao){
+    pPosicao->x += pPosicao->desX*LADO/2;
+    pPosicao->y += pPosicao->desY*LADO/2;
+}
+
 int main(){
+    POSICAO tiro;
     JOGADOR jogador;
     TOUPEIRA toupeiras[M_MAX];
     jogador.posicao.desX = 0;
@@ -137,27 +142,56 @@ int main(){
 
     while (!WindowShouldClose()){
 
-        if (IsKeyPressed(KEY_RIGHT)){
-            jogador.posicao.desX = 1;
-            jogador.posicao.desY = 0;
-        }
-        if (IsKeyPressed(KEY_LEFT)){
-            jogador.posicao.desX = -1;
-            jogador.posicao.desY = 0;
-        }
         if (IsKeyPressed(KEY_UP)){
             jogador.posicao.desX = 0;
             jogador.posicao.desY = -1;
+            jogador.posicao.sentido = 1;
+        }
+        if (IsKeyPressed(KEY_RIGHT)){
+            jogador.posicao.desX = 1;
+            jogador.posicao.desY = 0;
+            jogador.posicao.sentido = 2;
         }
         if (IsKeyPressed(KEY_DOWN)){
             jogador.posicao.desX = 0;
             jogador.posicao.desY = 1;
+            jogador.posicao.sentido = 3;
         }
+        if (IsKeyPressed(KEY_LEFT)){
+            jogador.posicao.desX = -1;
+            jogador.posicao.desY = 0;
+            jogador.posicao.sentido = 4;
+        }
+
+        if (IsKeyPressed(KEY_G)){
+            tiro.x = jogador.posicao.x;
+            tiro.y = jogador.posicao.y;
+            switch (jogador.posicao.sentido){
+                case 1:
+                    tiro.desX = 0;
+                    tiro.desY = -1;
+                    break;
+                case 2:
+                    tiro.desX = 1;
+                    tiro.desY = 0;
+                    break;
+                case 3:
+                    tiro.desX = 0;
+                    tiro.desY = 1;
+                    break;
+                case 4:
+                    tiro.desX = -1;
+                    tiro.desY = 0;
+                    break;
+            }
+        }
+        moveTiro(&tiro);
         if(podeMoverJ(jogador.posicao, LARGURA, ALTURA, mapa) == 1){
             move(&jogador.posicao);
             jogador.posicao.desX = 0;
             jogador.posicao.desY = 0;
         }
+
         tempo++;
         for(i=0; i<toupeira_n; i++){
             if (tempo == VELOCIDADE){
@@ -169,6 +203,7 @@ int main(){
         ClearBackground(RAYWHITE);
         desenhaMapa(mapa);
         DrawRectangle(jogador.posicao.x, jogador.posicao.y, LADO, LADO, RED);
+        DrawRectangle(tiro.x, tiro.y, 10, 10, SKYBLUE);
         for (i=0; i<toupeira_n; i++){
         	DrawRectangle(toupeiras[i].posicao.x, toupeiras[i].posicao.y, LADO, LADO, BROWN);
         }

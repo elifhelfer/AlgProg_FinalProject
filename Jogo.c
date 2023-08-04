@@ -10,6 +10,7 @@
 #define MAX_LINHAS 20
 #define M_MAX 200
 #define VELOCIDADE 10
+#define LADOTIRO 10
 
 //Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo4.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 typedef struct posicao{
@@ -164,22 +165,28 @@ int main(){
         }
 
         if (IsKeyPressed(KEY_G)){
-            tiro.x = jogador.posicao.x;
-            tiro.y = jogador.posicao.y;
             switch (jogador.posicao.sentido){
                 case 1:
+                    tiro.x = jogador.posicao.x+LADO/2-LADOTIRO/2;
+                    tiro.y = jogador.posicao.y;
                     tiro.desX = 0;
                     tiro.desY = -1;
                     break;
                 case 2:
+                    tiro.x = jogador.posicao.x+LADO;
+                    tiro.y = jogador.posicao.y+(LADO/2)-(LADOTIRO/2);
                     tiro.desX = 1;
                     tiro.desY = 0;
                     break;
                 case 3:
+                    tiro.x = jogador.posicao.x+(LADO/2)-(LADOTIRO/2);
+                    tiro.y = jogador.posicao.y+LADO;
                     tiro.desX = 0;
                     tiro.desY = 1;
                     break;
                 case 4:
+                    tiro.x = jogador.posicao.x-LADOTIRO;
+                    tiro.y = jogador.posicao.y+(LADO/2)-(LADOTIRO/2);
                     tiro.desX = -1;
                     tiro.desY = 0;
                     break;
@@ -203,7 +210,7 @@ int main(){
         ClearBackground(RAYWHITE);
         desenhaMapa(mapa);
         DrawRectangle(jogador.posicao.x, jogador.posicao.y, LADO, LADO, RED);
-        DrawRectangle(tiro.x, tiro.y, 10, 10, SKYBLUE);
+        DrawRectangle(tiro.x, tiro.y, LADOTIRO, LADOTIRO, SKYBLUE);
         for (i=0; i<toupeira_n; i++){
         	DrawRectangle(toupeiras[i].posicao.x, toupeiras[i].posicao.y, LADO, LADO, BROWN);
         }

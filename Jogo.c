@@ -11,6 +11,7 @@
 #define M_MAX 200
 #define VELOCIDADE 10
 #define LADOTIRO 10
+#define O_MAX 600
 
 //Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo4.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 typedef struct posicao{
@@ -26,7 +27,7 @@ typedef struct jogador{
     POSICAO posicao;
 }JOGADOR;
 
-void desenhaMapa(char mapa[][MAX_COLUNAS]){
+void desenhaMapa(char mapa[MAX_LINHAS][MAX_COLUNAS]){
     int i, j;
         for(i=0; i<MAX_COLUNAS; i++){
                 for(j=0; j<MAX_LINHAS; j++){
@@ -46,7 +47,7 @@ void desenhaMapa(char mapa[][MAX_COLUNAS]){
             }
 }
 
-int podeMoverJ(POSICAO posicao, int largura, int altura, char mapa[][MAX_COLUNAS]){
+int podeMoverJ(POSICAO posicao, int largura, int altura, char mapa[MAX_LINHAS][MAX_COLUNAS]){
     int pode = 1;
     int posFimX = posicao.x/LADO + posicao.desX;
     int posFimY = posicao.y/LADO + posicao.desY;
@@ -56,7 +57,7 @@ int podeMoverJ(POSICAO posicao, int largura, int altura, char mapa[][MAX_COLUNAS
     return pode;
 }
 
-int podeMoverT(POSICAO posicao, int largura, int altura, char mapa[][MAX_COLUNAS]){
+int podeMoverT(POSICAO posicao, int largura, int altura, char mapa[MAX_LINHAS][MAX_COLUNAS]){
     int pode = 1;
     int posFimX = posicao.x/LADO + posicao.desX;
     int posFimY = posicao.y/LADO + posicao.desY;
@@ -93,14 +94,53 @@ void moveTiro(POSICAO *pPosicao){
     pPosicao->y += pPosicao->desY*LADO/2;
 }
 
+void sentidoTiro(POSICAO *tiro, POSICAO jogador){
+    switch (jogador.sentido){
+                case 1:
+                    tiro->x = jogador.x+LADO/2-LADOTIRO/2;
+                    tiro->y = jogador.y;
+                    tiro->desX = 0;
+                    tiro->desY = -1;
+                    break;
+                case 2:
+                    tiro->x = jogador.x+LADO;
+                    tiro->y = jogador.y+(LADO/2)-(LADOTIRO/2);
+                    tiro->desX = 1;
+                    tiro->desY = 0;
+                    break;
+                case 3:
+                    tiro->x = jogador.x+(LADO/2)-(LADOTIRO/2);
+                    tiro->y = jogador.y+LADO;
+                    tiro->desX = 0;
+                    tiro->desY = 1;
+                    break;
+                case 4:
+                    tiro->x = jogador.x-LADOTIRO;
+                    tiro->y = jogador.y+(LADO/2)-(LADOTIRO/2);
+                    tiro->desX = -1;
+                    tiro->desY = 0;
+                    break;
+    }
+}
+
+int tiroColisao(POSICAO tiro, POSICAO objetos[], int objetos_n, char mapa[MAX_LINHAS][MAX_COLUNAS]){
+    int i;
+    for(i = 0; i<objetos_n; i++){
+        if(objetos[i].x/LADO == tiro.x/LADO && objetos[i].y/LADO == tiro.y/LADO){
+            mapa[objetos[i].y/LADO][objetos[i].x/LADO] = ' ';
+        }
+    }
+}
+
 int main(){
     POSICAO tiro;
     JOGADOR jogador;
     TOUPEIRA toupeiras[M_MAX];
+    POSICAO objetos[O_MAX];
     jogador.posicao.desX = 0;
     jogador.posicao.desY = 0;
     int tempo = 0;
-    int toupeira_n = 0;
+    int toupeira_n = 0, objetos_n = 0;
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS] = {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
                                           '#','J',' ',' ',' ',' ',' ','S','#',' ','T',' ',' ',' ','S','S','S','S','O','O','S','S',' ','#',' ','S','S','S','S','#',
@@ -136,6 +176,11 @@ int main(){
                         toupeiraRand(&toupeiras[toupeira_n].posicao);
                         toupeira_n++;
                     }
+                    if(mapa[i][j] == 'S'){
+                        objetos[objetos_n].x = j*LADO;
+                        objetos[objetos_n].y = i*LADO;
+                        objetos_n++;
+                    }
                 }
             }
     InitWindow(LARGURA, ALTURA, ":)");
@@ -163,49 +208,30 @@ int main(){
             jogador.posicao.desY = 0;
             jogador.posicao.sentido = 4;
         }
-
         if (IsKeyPressed(KEY_G)){
-            switch (jogador.posicao.sentido){
-                case 1:
-                    tiro.x = jogador.posicao.x+LADO/2-LADOTIRO/2;
-                    tiro.y = jogador.posicao.y;
-                    tiro.desX = 0;
-                    tiro.desY = -1;
-                    break;
-                case 2:
-                    tiro.x = jogador.posicao.x+LADO;
-                    tiro.y = jogador.posicao.y+(LADO/2)-(LADOTIRO/2);
-                    tiro.desX = 1;
-                    tiro.desY = 0;
-                    break;
-                case 3:
-                    tiro.x = jogador.posicao.x+(LADO/2)-(LADOTIRO/2);
-                    tiro.y = jogador.posicao.y+LADO;
-                    tiro.desX = 0;
-                    tiro.desY = 1;
-                    break;
-                case 4:
-                    tiro.x = jogador.posicao.x-LADOTIRO;
-                    tiro.y = jogador.posicao.y+(LADO/2)-(LADOTIRO/2);
-                    tiro.desX = -1;
-                    tiro.desY = 0;
-                    break;
-            }
+            sentidoTiro(&tiro, jogador.posicao);
         }
+
+        //Mover:
+
         moveTiro(&tiro);
+        tiroColisao(tiro, objetos, objetos_n, mapa);
+
         if(podeMoverJ(jogador.posicao, LARGURA, ALTURA, mapa) == 1){
             move(&jogador.posicao);
-            jogador.posicao.desX = 0;
-            jogador.posicao.desY = 0;
         }
+        jogador.posicao.desX = 0;
+        jogador.posicao.desY = 0;
 
-        tempo++;
         for(i=0; i<toupeira_n; i++){
             if (tempo == VELOCIDADE){
             moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa));
             }
         }
+
         if (tempo == VELOCIDADE) tempo = 0;
+        tempo++;
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
         desenhaMapa(mapa);
@@ -215,6 +241,7 @@ int main(){
         	DrawRectangle(toupeiras[i].posicao.x, toupeiras[i].posicao.y, LADO, LADO, BROWN);
         }
         EndDrawing();
+
     }
     CloseWindow();
 

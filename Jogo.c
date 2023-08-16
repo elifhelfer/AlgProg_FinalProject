@@ -47,6 +47,51 @@ void desenhaMapa(char mapa[MAX_LINHAS][MAX_COLUNAS]){
             }
 }
 
+void toupeiraRand(POSICAO *pPosicao){
+    pPosicao->desX = GetRandomValue(-1,1);
+    pPosicao->desY = GetRandomValue(-1,1);
+}
+
+int leMapa(char nomeArq[], char mapa[][MAX_COLUNAS], JOGADOR *pJogador, TOUPEIRA toupeiras[], POSICAO objetos[], int *toupeira_n, int *objeto_n){
+    //Lê o mapa de um arquivo txt, e retorna por referencia informações importantes acerca da posição de elementos do jogo no mapa.
+    //Função de inicialização do jogo, basicamente.
+    FILE *arq;
+    int i, j;
+
+    if (!(arq = fopen(nomeArq, "r"))){
+        printf("Erro na abertura do mapa!");
+    }else{
+        while(!(feof(arq))){
+            for (i = 0; i<MAX_LINHAS; i++){
+                for(j = 0; j<MAX_COLUNAS; j++){
+                    mapa[i][j] = getc(arq);
+                    if (mapa[i][j] == 'J'){
+                        pJogador->posicao.x = j*LADO;
+                        pJogador->posicao.y = i*LADO;
+                    }
+                    else if (mapa[i][j] == 'T'){
+                        toupeiras[*toupeira_n].posicao.x = j*LADO;
+                        toupeiras[*toupeira_n].posicao.y = i*LADO;
+                        toupeiras[*toupeira_n].contPassos = 0;
+                        toupeiraRand(&toupeiras[*toupeira_n].posicao);
+                        *toupeira_n += 1;
+                    }
+                    else if (mapa[i][j] == 'S'){
+                        objetos[*objeto_n].x = j*LADO;
+                        objetos[*objeto_n].y = i*LADO;
+                        *objeto_n += 1;
+                    }
+
+                }
+                getc(arq);
+            }
+        }
+        return 1;
+    }
+    fclose(arq);
+    return 0;
+}
+
 int podeMoverJ(POSICAO posicao, int largura, int altura, char mapa[MAX_LINHAS][MAX_COLUNAS]){
     int pode = 1;
     int posFimX = posicao.x/LADO + posicao.desX;
@@ -70,11 +115,6 @@ int podeMoverT(POSICAO posicao, int largura, int altura, char mapa[MAX_LINHAS][M
 void move(POSICAO *pPosicao){
     pPosicao->x += pPosicao->desX*LADO;
     pPosicao->y += pPosicao->desY*LADO;
-}
-
-void toupeiraRand(POSICAO *pPosicao){
-    pPosicao->desX = GetRandomValue(-1,1);
-    pPosicao->desY = GetRandomValue(-1,1);
 }
 
 void moveToupeira(TOUPEIRA *pToupeira, int pode){
@@ -140,49 +180,12 @@ int main(){
     jogador.posicao.desX = 0;
     jogador.posicao.desY = 0;
     int tempo = 0;
-    int toupeira_n = 0, objetos_n = 0;
+    int toupeira_n = 0, objeto_n = 0;
     int i,j;
-    char mapa[MAX_LINHAS][MAX_COLUNAS] = {'#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
-                                          '#','J',' ',' ',' ',' ',' ','S','#',' ','T',' ',' ',' ','S','S','S','S','O','O','S','S',' ','#',' ','S','S','S','S','#',
-                                          '#',' ',' ',' ','A',' ',' ',' ','#',' ',' ',' ',' ',' ','S','S','S','O','O','S','S','S',' ','#',' ','S','S','S','S','#',
-                                          '#',' ','O',' ',' ',' ',' ',' ','#','#','#','#','#',' ',' ',' ','S','S','O','O','S','S',' ',' ',' ','S','E','O','O','#',
-                                          '#','#','#','#','#','#','#',' ',' ',' ',' ','S','S',' ',' ',' ','S','S','S','S','S','S',' ',' ',' ','S','S','S','S','#',
-                                          '#','E','O','O','S','S','#','#','#','#','#','#','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ','#',' ','S','S',' ',' ','#',
-                                          '#','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ','S','S','S','S','S','S',' ','#',' ',' ','A',' ',' ','#',
-                                          '#',' ',' ','T',' ',' ',' ',' ',' ',' ',' ','A',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#','#',' ','T','S','S',' ','#',
-                                          '#','S','O','S','S','S','O','S',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#','#',' ',' ','S','S','S',' ','#',
-                                          '#','S','S','S','O','O','O','S','S','S',' ',' ',' ',' ','#','#','#','#','#','#','#','#',' ',' ',' ','S','O','O',' ','#',
-                                          '#','O','S','S','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ',' ','T',' ',' ',' ',' ',' ',' ',' ',' ','#',
-                                          '#','#','#','#','#','#','#','#','#','#','#','#','#','A',' ','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#',
-                                          '#','T','S','S','S','S','S','S','S',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','S','S','S','E','#',
-                                          '#','O','S','S','S','S','S','S',' ',' ',' ','#','S','S','S','S','S','#',' ',' ',' ','T',' ',' ',' ','S','O','O','S','#',
-                                          '#','S','S','O','O','O','S','S',' ',' ',' ','#','S','S','O','O','S','#',' ',' ',' ',' ',' ',' ',' ',' ',' ','S','S','#',
-                                          '#',' ',' ','#','#','#','#','#','#','#','#','#','#','O','O','#','#','#','#','#','#','#','#','#','#','#','#','S','S','#',
-                                          '#',' ',' ',' ',' ',' ','T',' ',' ','A',' ','S','S','S','S','S','S','S',' ',' ','T',' ',' ',' ','#',' ',' ',' ',' ','#',
-                                          '#',' ','S','S','S','S','S','S','S',' ',' ',' ','S','S','S','S','S',' ',' ',' ',' ','#',' ',' ','#',' ','#',' ',' ','#',
-                                          '#',' ','S','O','O','O','S','S','S',' ',' ',' ','S','S','E','S','S',' ',' ',' ',' ','#',' ',' ','A',' ','#',' ',' ','#',
-                                          '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'};
+    char mapa[MAX_LINHAS][MAX_COLUNAS];
 
-    for(i=0; i<MAX_LINHAS; i++){
-                for(j=0; j<MAX_COLUNAS; j++){
-                    if(mapa[i][j]=='J'){
-                        jogador.posicao.x = j*LADO;
-                        jogador.posicao.y = i*LADO;
-                    }
-                    if(mapa[i][j]=='T'){
-                        toupeiras[toupeira_n].posicao.x = j*LADO;
-                        toupeiras[toupeira_n].posicao.y = i*LADO;
-                        toupeiras[toupeira_n].contPassos = 0;
-                        toupeiraRand(&toupeiras[toupeira_n].posicao);
-                        toupeira_n++;
-                    }
-                    if(mapa[i][j] == 'S'){
-                        objetos[objetos_n].x = j*LADO;
-                        objetos[objetos_n].y = i*LADO;
-                        objetos_n++;
-                    }
-                }
-            }
+    leMapa("mapa1.txt", mapa, &jogador, toupeiras, objetos, &toupeira_n, &objeto_n);
+
     InitWindow(LARGURA, ALTURA, ":)");
     SetTargetFPS(60);
 
@@ -215,7 +218,7 @@ int main(){
         //Mover:
 
         moveTiro(&tiro);
-        tiroColisao(tiro, objetos, objetos_n, mapa);
+        tiroColisao(tiro, objetos, objeto_n, mapa);
 
         if(podeMoverJ(jogador.posicao, LARGURA, ALTURA, mapa) == 1){
             move(&jogador.posicao);

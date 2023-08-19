@@ -12,6 +12,8 @@
 #define VELOCIDADE 10
 #define LADOPEQUENO 10
 #define O_MAX 600
+#define MAXNOMEMAPA 20
+#define MAXMAPAS 100
 
 //Comando pra eu poder compilar os códigos no linux, ignore: cc jogoPrototipo4.c -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 typedef struct posicao{
@@ -23,6 +25,7 @@ typedef struct toupeira{
     //Informações sobre as toupeiras
     POSICAO posicao;
     int contPassos;
+    POSICAO posicaoInicial;
 }TOUPEIRA;
 
 typedef struct jogador{
@@ -32,6 +35,7 @@ typedef struct jogador{
     int powerup;
     int esmeraldas;
     int pontos;
+    POSICAO posicaoInicial;
 }JOGADOR;
 
 void desenhaMapa(char mapa[MAX_LINHAS][MAX_COLUNAS]){
@@ -64,7 +68,7 @@ void toupeiraRand(POSICAO *pPosicao){
     pPosicao->desY = GetRandomValue(-1,1);
 }
 
-int leMapa(char nomeArq[], char mapa[][MAX_COLUNAS], JOGADOR *pJogador, TOUPEIRA toupeiras[], int *toupeira_n){
+int leMapa(char nomeArq[], char mapa[][MAX_COLUNAS], JOGADOR *pJogador, TOUPEIRA toupeiras[], int *toupeira_n, int *esmeralda_n){
     //Lê o mapa de um arquivo txt, preenche a matriz 'mapa' e retorna por referencia informações importantes acerca da posição de elementos do jogo no mapa, além de inicializar algumas variaveis.
     //Função de inicialização do jogo, basicamente.
     FILE *arq;
@@ -80,21 +84,28 @@ int leMapa(char nomeArq[], char mapa[][MAX_COLUNAS], JOGADOR *pJogador, TOUPEIRA
                     if (mapa[i][j] == 'J'){
                         pJogador->posicao.x = j*LADO; //Retorna a posição inicial do jogador por referencia
                         pJogador->posicao.y = i*LADO;
-                        pJogador->vidas = 3; //inicializa itens, vida, pontuação, etc
+                        pJogador->posicaoInicial.x = j*LADO;
+                        pJogador->posicaoInicial.y = i*LADO;
+                        //inicializa itens, vida, pontuação, etc
                         pJogador->powerup = 0;
                         pJogador->esmeraldas = 0;
-                        pJogador->pontos = 0;
                         pJogador->posicao.desX = 0;
                         pJogador->posicao.desY = 0;
                         pJogador->posicao.sentido = 2;
+
                     }
                     else if (mapa[i][j] == 'T'){
                         toupeiras[*toupeira_n].posicao.x = j*LADO; //Passa posição e outras informações referentes a cada toupeira por referencia;
                         toupeiras[*toupeira_n].posicao.y = i*LADO;
+                        toupeiras[*toupeira_n].posicaoInicial.x = j*LADO;
+                        toupeiras[*toupeira_n].posicaoInicial.y = i*LADO;
                         toupeiras[*toupeira_n].contPassos = 0;
                         toupeiras[*toupeira_n].posicao.visivel = 1;
                         toupeiraRand(&toupeiras[*toupeira_n].posicao);
                         *toupeira_n += 1; //A cada toupeira nova, a variavel "toupeira_n", que armazena o numero total de toupeiras no mapa, aumenta
+                    }
+                    else if (mapa[i][j] == 'A'){
+                        *esmeralda_n += 1;
                     }
 
                 }
@@ -197,7 +208,6 @@ int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupe
     //A função retorna 1 se o tiro atravessou algo, e 0 se não atravessou nada.
     //Se ele acertou uma área soterrada, ela some
     //A função tambem testa a posicao de cada toupeira para determinar se o tiro acertou alguma. Se sim, ela desaparece e não é mais desenhada.
-
     int i;
 
     if (mapa[tiro.y/LADO][tiro.x/LADO] == '#'){
@@ -206,7 +216,7 @@ int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupe
         mapa[tiro.y/LADO][tiro.x/LADO] = ' ';
         return 1;
     }else for (i=0; i<toupeira_n; i++){
-        if(tiro.y == toupeiras[i].posicao.y && tiro.x == toupeiras[i].posicao.x){
+        if(tiro.y == toupeiras[i].posicao.y && tiro.x == toupeiras[i].posicao.x && toupeiras[i].posicao.visivel == 1){
             toupeiras[i].posicao.visivel = 0;
             return 1;
             }
@@ -254,16 +264,43 @@ int main(){
     int tempoToupeira = 0; //Usado para fazer com que as toupeiras se movam mais devagar
     int tempoPowerup = 0; //Usado para o powerup ficar ativo por apenas 3 segundos
     int toupeira_n = 0; //Numero total de toupeiras no mapa
+    int esmeralda_n = 0;
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS];
+    char nomeMapa[MAXNOMEMAPA];
+    int numeroMapa = 1;
+    jogador.vidas = 3;
     tiro.visivel = 0;
+    jogador.pontos = 0;
 
-    leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n); //Função de inicialização
+    leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //Função de inicialização
 
     InitWindow(LARGURA, ALTURA, "SpaceSpelunker");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()){ //Loop principal
+
+        if (IsKeyPressed(KEY_E)){
+            jogador.esmeraldas++;
+            printf("%d", jogador.esmeraldas);
+        }
+
+
+        if (jogador.esmeraldas == esmeralda_n){ //Se o jogador coletar todas as esmeraldas, passa pra proxima fase.
+            esmeralda_n = 0; //variaveis que precisam ser resetadas são zeradas
+            tempoToupeira = 0;
+            tempoPowerup = 0;
+            toupeira_n = 0;
+            tiro.visivel = 0;
+            numeroMapa++; //numero do mapa/fase aumenta
+            sprintf(nomeMapa,"mapa%d.txt",numeroMapa); //nome do proximo mapa é gerado
+            leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
+            //as vidas e pontuação do jogador são preservados de mapa para mapa
+        }
+
+        if(jogador.vidas == 0){
+            //Game over
+        }
 
         pressionaTecla(&jogador, &tiro); //Atualzia informações de acordo com a tecla pressionada pelo usuario
 
@@ -278,7 +315,13 @@ int main(){
             if(toupeiras[i].posicao.visivel == 1){ //As atualizações só ocorrem se a toupeira estiver visivel, ou seja, 'viva'
                 if (tempoToupeira == VELOCIDADE){ //A cada frame, o tempoToupeira aumenta em 1. As toupeiras só se movem quando esse timer fica igual à VELOCIDADE. Isso faz com que elas não se movam tão rápido, efetivamente dividindo o framerate pela velocidade. Assim, as toupeiras se movem a 6FPS.
                     if (jogador.posicao.y == toupeiras[i].posicao.y && jogador.posicao.x == toupeiras[i].posicao.x){
-                        jogador.vidas--; //Se alguma toupeira ocupar a mesma posição do jogador, as vidas dele diminuem.
+                        jogador.vidas--; //Se alguma toupeira ocupar a mesma posição do jogador, as vidas dele diminuem e o jogador e as toupeiras retornam a suas posiçoes iniciais.
+                        jogador.posicao.x = jogador.posicaoInicial.x;
+                        jogador.posicao.y = jogador.posicaoInicial.y;
+                        for (j=0; j<toupeira_n; j++){
+                            toupeiras[j].posicao.x = toupeiras[j].posicaoInicial.x;
+                            toupeiras[j].posicao.y = toupeiras[j].posicaoInicial.y;
+                        }
                         printf("vidas: %d\n", jogador.vidas);
                     }
                 moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa)); //Se todas as condições forem atendidas, a toupeira se move.

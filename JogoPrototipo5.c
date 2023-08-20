@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #define LARGURA 900
-#define ALTURA 600
+#define ALTURA 700
 #define LADO 30
 #define MAX_COLUNAS 30
 #define MAX_LINHAS 20
@@ -134,6 +134,15 @@ int podeMoverJ(JOGADOR *jogador, int largura, int altura, char mapa[MAX_LINHAS][
         printf("POWERUPINICIO\n");//Debug
         mapa[posFimY][posFimX] = ' '; //Faz com que o powerup suma do mapa ao ser coletado
     }
+    if (mapa[posFimY][posFimX] == 'A'){
+        jogador->esmeraldas += 1;
+        jogador->pontos += 100;
+        mapa[posFimY][posFimX] = ' ';
+    }
+    if (mapa[posFimY][posFimX] == 'O'){
+        jogador->pontos +=50;
+        mapa[posFimY][posFimX] = ' ';
+    }
     return pode;
 }
 
@@ -202,7 +211,7 @@ void sentidoTiro(POSICAO *tiro, POSICAO jogador){
     }
 }
 
-int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupeiras[], int toupeira_n){
+int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupeiras[], int toupeira_n, int *pontos){
     //A função verifica a posição da matriz ocupada pelas coordenadas x e y do tiro. Como essas coordenadas estão em pixels, é necessário as dividir
     //pelo lado dos blocos para obtermos um valor condizente com a matriz.
     //A função retorna 1 se o tiro atravessou algo, e 0 se não atravessou nada.
@@ -218,6 +227,7 @@ int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupe
     }else for (i=0; i<toupeira_n; i++){
         if(tiro.y == toupeiras[i].posicao.y && tiro.x == toupeiras[i].posicao.x && toupeiras[i].posicao.visivel == 1){
             toupeiras[i].posicao.visivel = 0;
+            *pontos+=200;
             return 1;
             }
     }return 0;
@@ -228,14 +238,12 @@ int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupe
 
 
 void funcionaMenu(int *menu){
-    if (IsKeyPressed(KEY_N))//novo jogo
-    if (IsKeyPressed(KEY_C))//carregar jogo
-    if (IsKeyPressed(KEY_S))//salvar jogo
-    if (IsKeyPressed(KEY_Q))//sair sem salvar
-    if (IsKeyPressed(KEY_V)){
-        *menu=0;
-        printf("\n\nMenu:%d",*menu);
-    }
+    //if (IsKeyPressed(KEY_N))//novo jogo
+    //if (IsKeyPressed(KEY_C))//carregar jogo
+    //if (IsKeyPressed(KEY_S))//salvar jogo
+    //if (IsKeyPressed(KEY_Q))//sair sem salvar
+    if (IsKeyPressed(KEY_V)) *menu=0;
+    //DrawTexture();
 
 }
 void pressionaTecla(JOGADOR *jogador, POSICAO *tiro, int *menu ){
@@ -351,7 +359,7 @@ int main(){
 
             if(tiro.visivel == 1){ //Se o tiro estiver visivel(se o jogador pressionou G), o tiro se move. Se ele colidir com algo, ele para de ser visivel e dependendo do objeto com o qual ele colidiu, a ação apropriada acontece.
                 move(&tiro);
-                if (tiroColisao(tiro, mapa, toupeiras, toupeira_n) == 1){
+                if (tiroColisao(tiro, mapa, toupeiras, toupeira_n, &jogador.pontos) == 1){
                     tiro.visivel = 0;
                 }
             }
@@ -377,6 +385,10 @@ int main(){
             ClearBackground(RAYWHITE);
 
             desenhaMapa(mapa); //A função desenha todas as informações que estão na matriz
+            DrawText(TextFormat("vidas: %d",jogador.vidas), 100, 600, 30,BLACK);
+            DrawText(TextFormat("score: %d",jogador.pontos),400, 600, 30,BLACK);
+            DrawText(TextFormat("nivel: %d",numeroMapa), 100, 650, 30,BLACK);
+            DrawText(TextFormat("gemas: %d/%d",jogador.esmeraldas,esmeralda_n), 400, 650, 30,BLACK);
             DrawRectangle(jogador.posicao.x, jogador.posicao.y, LADO, LADO, RED); //Desenha o jogador, em função da posição dele
             if (tiro.visivel == 1){ //Se o tiro estiver visivel, o desenha.
                 DrawRectangle(tiro.x, tiro.y, LADOPEQUENO, LADOPEQUENO, SKYBLUE);

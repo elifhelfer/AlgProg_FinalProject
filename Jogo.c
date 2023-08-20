@@ -294,15 +294,16 @@ int main(){
             tiro.visivel = 0;
             numeroMapa++; //numero do mapa/fase aumenta
             sprintf(nomeMapa,"mapa%d.txt",numeroMapa); //nome do proximo mapa é gerado
-            leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
-            //as vidas e pontuação do jogador são preservados de mapa para mapa
+            if (!(leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n))){ //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
+                //Fim de jogo, você venceu!!                                                //as vidas e pontuação do jogador são preservados de mapa para mapa
+            }
         }
 
         if(jogador.vidas == 0){
             //Game over
         }
 
-        pressionaTecla(&jogador, &tiro); //Atualzia informações de acordo com a tecla pressionada pelo usuario
+        pressionaTecla(&jogador, &tiro); //Atualiza informações de acordo com a tecla pressionada pelo usuario
 
         //Mover:
         if(podeMoverJ(&jogador, LARGURA, ALTURA, mapa) == 1){ //Se a posição na qual o jogador quer se deslocar estiver livre, ele se move

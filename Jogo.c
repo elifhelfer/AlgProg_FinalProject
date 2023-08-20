@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #define LARGURA 900
-#define ALTURA 600
+#define ALTURA 700
 #define LADO 30
 #define MAX_COLUNAS 30
 #define MAX_LINHAS 20
@@ -280,12 +280,12 @@ int main(){
 
     while (!WindowShouldClose()){ //Loop principal
 
-        if (IsKeyPressed(KEY_E)){
+        if (IsKeyPressed(KEY_E)){ //DEBUG
             jogador.esmeraldas++;
             printf("%d", jogador.esmeraldas);
         }
 
-
+        //Ir pra proxima fase
         if (jogador.esmeraldas == esmeralda_n){ //Se o jogador coletar todas as esmeraldas, passa pra proxima fase.
             esmeralda_n = 0; //variaveis que precisam ser resetadas são zeradas
             tempoToupeira = 0;
@@ -338,6 +338,7 @@ int main(){
         }
 
         if (jogador.powerup == 1){ //Se o jogador coletar um powerup, o timer do powerup aumenta
+            //funcionaldiade do powerup
             tempoPowerup++;
         }
 

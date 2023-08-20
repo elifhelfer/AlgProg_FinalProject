@@ -293,7 +293,7 @@ int main(){
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS];
     char nomeMapa[MAXNOMEMAPA];
-    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText;
+    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText, tiroText;
     int numeroMapa = 1;
     int menu = 0;
     jogador.vidas = 3;
@@ -315,15 +315,10 @@ int main(){
     ouroText = LoadTexture("sprites/ouro.png");
     menuText = LoadTexture("sprites/menu.png");
     baixoText = LoadTexture("sprites/baixo.png");
-    //tiroText = LoadTexture("sprites/tiro.png");
+    tiroText = LoadTexture("sprites/projetil.png");
 
     while (!WindowShouldClose()){ //Loop principal
         if(menu==0){
-            if (IsKeyPressed(KEY_E)){ //DEBUG
-                jogador.esmeraldas++;
-                printf("%d", jogador.esmeraldas);
-            }
-
             //Ir pra proxima fase
             if (jogador.esmeraldas == esmeralda_n){ //Se o jogador coletar todas as esmeraldas, passa pra proxima fase.
                 esmeralda_n = 0; //variaveis que precisam ser resetadas são zeradas
@@ -337,11 +332,9 @@ int main(){
                     //Fim de jogo, você venceu!!                                                //as vidas e pontuação do jogador são preservados de mapa para mapa
                 }
             }
-
             if(jogador.vidas == 0){
                 //Game over
             }
-
             pressionaTecla(&jogador, &tiro,&menu); //Atualiza informações de acordo com a tecla pressionada pelo usuario
 
             //Mover:
@@ -362,7 +355,6 @@ int main(){
                                 toupeiras[j].posicao.x = toupeiras[j].posicaoInicial.x;
                                 toupeiras[j].posicao.y = toupeiras[j].posicaoInicial.y;
                             }
-                            printf("vidas: %d\n", jogador.vidas);
                         }
                     moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa)); //Se todas as condições forem atendidas, a toupeira se move.
                     }
@@ -386,37 +378,38 @@ int main(){
                 tempoPowerup = 0;
                 printf("FIMPOWERUP\n"); //Debug
             }
-
             if (tempoToupeira == VELOCIDADE) tempoToupeira = 0; //Reseta o timer da velocidade das toupeiras, e aumenta uma unidade a cada ciclo do loop principal.
-            tempoToupeira++;
-        }
+                tempoToupeira++;
+            }
             if (menu == 1) {
                 funcionaMenu(&menu);
             }
             BeginDrawing(); //Inicio da interface
             ClearBackground(RAYWHITE);
-
             desenhaMapa(mapa,toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText); //A função desenha todas as informações que estão na matriz
-            DrawText(TextFormat("vidas: %d",jogador.vidas), 100, 600, 30,WHITE);
-            DrawText(TextFormat("score: %d",jogador.pontos),400, 600, 30,WHITE);
-            DrawText(TextFormat("nivel: %d",numeroMapa), 100, 650, 30,WHITE);
-            DrawText(TextFormat("gemas: %d/%d",jogador.esmeraldas,esmeralda_n), 400, 650, 30,WHITE);
+            DrawTexture(baixoText, 0, 600, WHITE);
+            DrawText(TextFormat("vidas: %d",jogador.vidas), 200, 610, 30,WHITE);
+            DrawText(TextFormat("score: %d",jogador.pontos),500, 610, 30,WHITE);
+            DrawText(TextFormat("nivel: %d",numeroMapa), 200, 650, 30,WHITE);
+            DrawText(TextFormat("gemas: %d/%d",jogador.esmeraldas,esmeralda_n), 500, 650, 30,WHITE);
             DrawTexture(jogadorText, jogador.posicao.x, jogador.posicao.y, WHITE); //Desenha o jogador, em função da posição dele
             if (tiro.visivel == 1){ //Se o tiro estiver visivel, o desenha.
-                DrawRectangle(tiro.x, tiro.y, LADOPEQUENO, LADOPEQUENO, SKYBLUE);
+                DrawTexture(tiroText, tiro.x, tiro.y, WHITE);
             }
             for (i=0; i<toupeira_n; i++){ //Desenha cada uma das toupeiras.
                 if (toupeiras[i].posicao.visivel == 1){
                     DrawTexture(toupeiraText, toupeiras[i].posicao.x, toupeiras[i].posicao.y, WHITE);
                 }
             }
-            DrawTexture(baixoText, 0, 600, WHITE);
             if (menu == 1){
                 DrawTexture(menuText, 250, 50, WHITE);
-                //DrawText("Voltar", 100+80, 600+90, 30,WHITE);
+                DrawText("Novo jogo [N]", 330, 130, 29,WHITE);
+                DrawText("Carregar jogo [C]", 330, 230, 29,WHITE);
+                DrawText("Salvar jogo [S]", 330, 330, 29,WHITE);
+                DrawText("Sair sem salvar [Q]", 330, 430, 29,WHITE);
+                DrawText("Voltar [v]", 330, 530, 29,WHITE);
             }
             EndDrawing();
-
     }
     CloseWindow();
 

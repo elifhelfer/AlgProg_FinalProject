@@ -35,6 +35,8 @@ typedef struct jogador{
     int powerup;
     int esmeraldas;
     int pontos;
+    int gameOver;
+    int ganhou;
     POSICAO posicaoInicial;
 }JOGADOR;
 
@@ -281,7 +283,6 @@ void pressionaTecla(JOGADOR *jogador, POSICAO *tiro, int *menu ){
 
         }
 
-
 int main(){
     POSICAO tiro;
     JOGADOR jogador;
@@ -293,12 +294,17 @@ int main(){
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS];
     char nomeMapa[MAXNOMEMAPA];
-    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText, tiroText;
+    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText, tiroText, gameOverText;
     int numeroMapa = 1;
     int menu = 0;
+    int mensagem;
+    jogador.gameOver = 0;
+    jogador.ganhou = 0;
     jogador.vidas = 3;
     tiro.visivel = 0;
     jogador.pontos = 0;
+    srand(time(NULL));
+    mensagem = GetRandomValue(0,9);
 
     leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //Função de inicialização
 
@@ -316,102 +322,143 @@ int main(){
     menuText = LoadTexture("sprites/menu.png");
     baixoText = LoadTexture("sprites/baixo.png");
     tiroText = LoadTexture("sprites/projetil.png");
+    gameOverText = LoadTexture("sprites/gameOver.png");
 
     while (!WindowShouldClose()){ //Loop principal
-        if(menu==0){
-            //Ir pra proxima fase
-            if (jogador.esmeraldas == esmeralda_n){ //Se o jogador coletar todas as esmeraldas, passa pra proxima fase.
-                esmeralda_n = 0; //variaveis que precisam ser resetadas são zeradas
-                tempoToupeira = 0;
-                tempoPowerup = 0;
-                toupeira_n = 0;
-                tiro.visivel = 0;
-                numeroMapa++; //numero do mapa/fase aumenta
-                sprintf(nomeMapa,"mapa%d.txt",numeroMapa); //nome do proximo mapa é gerado
-                if (!(leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n))){ //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
-                    //Fim de jogo, você venceu!!                                                //as vidas e pontuação do jogador são preservados de mapa para mapa
-                }
-            }
-            if(jogador.vidas == 0){
-                //Game over
-            }
-            pressionaTecla(&jogador, &tiro,&menu); //Atualiza informações de acordo com a tecla pressionada pelo usuario
-
-            //Mover:
-            if(podeMoverJ(&jogador, LARGURA, ALTURA, mapa) == 1){ //Se a posição na qual o jogador quer se deslocar estiver livre, ele se move
-                move(&jogador.posicao);
-            }
-            jogador.posicao.desX = 0; //Reseta o deslocamento do jogador, até que ele pressione outra tecla
-            jogador.posicao.desY = 0;
-
-            for(i=0; i<toupeira_n; i++){ //O laço atualiza as informações de cada toupeira na tela
-                if(toupeiras[i].posicao.visivel == 1){ //As atualizações só ocorrem se a toupeira estiver visivel, ou seja, 'viva'
-                    if (tempoToupeira == VELOCIDADE){ //A cada frame, o tempoToupeira aumenta em 1. As toupeiras só se movem quando esse timer fica igual à VELOCIDADE. Isso faz com que elas não se movam tão rápido, efetivamente dividindo o framerate pela velocidade. Assim, as toupeiras se movem a 6FPS.
-                        if (jogador.posicao.y == toupeiras[i].posicao.y && jogador.posicao.x == toupeiras[i].posicao.x){
-                            jogador.vidas--; //Se alguma toupeira ocupar a mesma posição do jogador, as vidas dele diminuem e o jogador e as toupeiras retornam a suas posiçoes iniciais.
-                            jogador.posicao.x = jogador.posicaoInicial.x;
-                            jogador.posicao.y = jogador.posicaoInicial.y;
-                            for (j=0; j<toupeira_n; j++){
-                                toupeiras[j].posicao.x = toupeiras[j].posicaoInicial.x;
-                                toupeiras[j].posicao.y = toupeiras[j].posicaoInicial.y;
-                            }
-                        }
-                    moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa)); //Se todas as condições forem atendidas, a toupeira se move.
+        if (jogador.gameOver == 0){
+            if(menu == 0){
+                //Ir pra proxima fase
+                if (jogador.esmeraldas == esmeralda_n){ //Se o jogador coletar todas as esmeraldas, passa pra proxima fase.
+                    esmeralda_n = 0; //variaveis que precisam ser resetadas são zeradas
+                    tempoToupeira = 0;
+                    tempoPowerup = 0;
+                    toupeira_n = 0;
+                    tiro.visivel = 0;
+                    numeroMapa++; //numero do mapa/fase aumenta
+                    sprintf(nomeMapa,"mapa%d.txt",numeroMapa); //nome do proximo mapa é gerado
+                    if (!(leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n))){ //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
+                        jogador.ganhou = 1;
+                        jogador.gameOver = 1;                                                       //as vidas e pontuação do jogador são preservados de mapa para mapa
                     }
                 }
-            }
+                if(jogador.vidas == 0){
+                    jogador.gameOver = 1;
+                }
+                pressionaTecla(&jogador, &tiro,&menu); //Atualiza informações de acordo com a tecla pressionada pelo usuario
+                if (IsKeyPressed(KEY_P)){
+                    jogador.vidas--;
+                }
+                if (IsKeyPressed(KEY_E)){
+                    jogador.esmeraldas++;
+                }
 
-            if(tiro.visivel == 1){ //Se o tiro estiver visivel(se o jogador pressionou G), o tiro se move. Se ele colidir com algo, ele para de ser visivel e dependendo do objeto com o qual ele colidiu, a ação apropriada acontece.
-                move(&tiro);
-                if (tiroColisao(tiro, mapa, toupeiras, toupeira_n, &jogador.pontos) == 1){
-                    tiro.visivel = 0;
+
+                //Mover:
+                if(podeMoverJ(&jogador, LARGURA, ALTURA, mapa) == 1){ //Se a posição na qual o jogador quer se deslocar estiver livre, ele se move
+                    move(&jogador.posicao);
+                }
+                jogador.posicao.desX = 0; //Reseta o deslocamento do jogador, até que ele pressione outra tecla
+                jogador.posicao.desY = 0;
+
+                for(i=0; i<toupeira_n; i++){ //O laço atualiza as informações de cada toupeira na tela
+                    if(toupeiras[i].posicao.visivel == 1){ //As atualizações só ocorrem se a toupeira estiver visivel, ou seja, 'viva'
+                        if (tempoToupeira == VELOCIDADE){ //A cada frame, o tempoToupeira aumenta em 1. As toupeiras só se movem quando esse timer fica igual à VELOCIDADE. Isso faz com que elas não se movam tão rápido, efetivamente dividindo o framerate pela velocidade. Assim, as toupeiras se movem a 6FPS.
+                            if (jogador.posicao.y == toupeiras[i].posicao.y && jogador.posicao.x == toupeiras[i].posicao.x){
+                                jogador.vidas--; //Se alguma toupeira ocupar a mesma posição do jogador, as vidas dele diminuem e o jogador e as toupeiras retornam a suas posiçoes iniciais.
+                                jogador.posicao.x = jogador.posicaoInicial.x;
+                                jogador.posicao.y = jogador.posicaoInicial.y;
+                                for (j=0; j<toupeira_n; j++){
+                                    toupeiras[j].posicao.x = toupeiras[j].posicaoInicial.x;
+                                    toupeiras[j].posicao.y = toupeiras[j].posicaoInicial.y;
+                                }
+                            }
+                        moveToupeira(&toupeiras[i], podeMoverT(toupeiras[i].posicao, LARGURA, ALTURA, mapa)); //Se todas as condições forem atendidas, a toupeira se move.
+                        }
+                    }
+                }
+
+                if(tiro.visivel == 1){ //Se o tiro estiver visivel(se o jogador pressionou G), o tiro se move. Se ele colidir com algo, ele para de ser visivel e dependendo do objeto com o qual ele colidiu, a ação apropriada acontece.
+                    move(&tiro);
+                    if (tiroColisao(tiro, mapa, toupeiras, toupeira_n, &jogador.pontos) == 1){
+                        tiro.visivel = 0;
+                    }
+                }
+                if (jogador.powerup == 1){ //Se o jogador coletar um powerup, o timer do powerup aumenta
+                    //funcionaldiade do powerup
+                    tempoPowerup++;
+                }
+                if(tempoPowerup == 180){ //O jogo roda a 60FPS, então 3 segundos se referem a 180 frames. O contador aumenta 1 a cada frame, então quando ele chega a 180 ele tem que parar e desativar o powerup.
+                    jogador.powerup = 0;
+                    tempoPowerup = 0;
+                    printf("FIMPOWERUP\n"); //Debug
+                }
+                if (tempoToupeira == VELOCIDADE) tempoToupeira = 0; //Reseta o timer da velocidade das toupeiras, e aumenta uma unidade a cada ciclo do loop principal.
+                    tempoToupeira++;
+                }
+                if (menu == 1) {
+                    funcionaMenu(&menu);
+                }
+                BeginDrawing(); //Inicio da interface
+                ClearBackground(RAYWHITE);
+                desenhaMapa(mapa,toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText); //A função desenha todas as informações que estão na matriz
+                DrawTexture(baixoText, 0, 600, WHITE);
+                DrawText(TextFormat("vidas: %d",jogador.vidas), 200, 610, 30,WHITE);
+                DrawText(TextFormat("score: %d",jogador.pontos),500, 610, 30,WHITE);
+                DrawText(TextFormat("nivel: %d",numeroMapa), 200, 650, 30,WHITE);
+                DrawText(TextFormat("gemas: %d/%d",jogador.esmeraldas,esmeralda_n), 500, 650, 30,WHITE);
+                DrawTexture(jogadorText, jogador.posicao.x, jogador.posicao.y, WHITE); //Desenha o jogador, em função da posição dele
+                if (tiro.visivel == 1){ //Se o tiro estiver visivel, o desenha.
+                    DrawTexture(tiroText, tiro.x, tiro.y, WHITE);
+                }
+                for (i=0; i<toupeira_n; i++){ //Desenha cada uma das toupeiras.
+                    if (toupeiras[i].posicao.visivel == 1){
+                        DrawTexture(toupeiraText, toupeiras[i].posicao.x, toupeiras[i].posicao.y, WHITE);
+                    }
+                }
+                if (menu == 1){
+                    DrawTexture(menuText, 250, 50, WHITE);
+                    DrawText("Novo jogo [N]", 330, 130, 29,WHITE);
+                    DrawText("Carregar jogo [C]", 330, 230, 29,WHITE);
+                    DrawText("Salvar jogo [S]", 330, 330, 29,WHITE);
+                    DrawText("Sair sem salvar [Q]", 330, 430, 29,WHITE);
+                    DrawText("Voltar [V]", 330, 530, 29,WHITE);
+                }
+                EndDrawing();
+        }
+        else{
+            BeginDrawing();
+            DrawTexture(gameOverText, 0, 0, WHITE);
+            if (jogador.ganhou == 0){
+                switch (mensagem){
+                    case 0: DrawText("Voce morreu! Nao estou bravo, apenas decepcionado.", 130, 400, 25,WHITE);
+                            break;
+                    case 1: DrawText("Voce morreu! Tente de novo ou morra tentando.", 130, 400, 25,WHITE);
+                            break;
+                    case 2: DrawText("Bah oh meu....", 130, 400, 25,WHITE);
+                            break;
+                    case 3: DrawText("As toupeiras foram mais fortes.\nMaltidos sejam os Digglets!", 130, 400, 25,WHITE);
+                            break;
+                    case 4: DrawText("Voce nao pode desistir ainda!\nSpace Spelunker!\nTenha determinacao!", 130, 400, 25,WHITE);
+                            break;
+                    case 5: DrawText("Tem uma hora pra tudo, e a sua foi agora.", 140, 400, 25,WHITE);
+                            break;
+                    case 6: DrawText("Foi de arrasta pra cima.", 140, 400, 25, WHITE);
+                            break;
+                    case 7: DrawText("Ficamos 3 semanas fazendo esse jogo e voce perdeu?!\nDesrespeitoso.", 130, 400, 25,WHITE);
+                            break;
+                    case 8: DrawText("Ta errado isso ai!\n- Longhi, Fernando.", 140, 400, 25,WHITE);
+                            break;
+                    case 9: DrawText("You tried so hard, and got so far...", 140, 400, 25,WHITE);
+                            break;
                 }
             }
-
-            if (jogador.powerup == 1){ //Se o jogador coletar um powerup, o timer do powerup aumenta
-                //funcionaldiade do powerup
-                tempoPowerup++;
+            else{
+                DrawText("A missao foi um sucesso!", 140, 400, 25, WHITE);
             }
-
-            if(tempoPowerup == 180){ //O jogo roda a 60FPS, então 3 segundos se referem a 180 frames. O contador aumenta 1 a cada frame, então quando ele chega a 180 ele tem que parar e desativar o powerup.
-                jogador.powerup = 0;
-                tempoPowerup = 0;
-                printf("FIMPOWERUP\n"); //Debug
-            }
-            if (tempoToupeira == VELOCIDADE) tempoToupeira = 0; //Reseta o timer da velocidade das toupeiras, e aumenta uma unidade a cada ciclo do loop principal.
-                tempoToupeira++;
-            }
-            if (menu == 1) {
-                funcionaMenu(&menu);
-            }
-            BeginDrawing(); //Inicio da interface
-            ClearBackground(RAYWHITE);
-            desenhaMapa(mapa,toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText); //A função desenha todas as informações que estão na matriz
-            DrawTexture(baixoText, 0, 600, WHITE);
-            DrawText(TextFormat("vidas: %d",jogador.vidas), 200, 610, 30,WHITE);
-            DrawText(TextFormat("score: %d",jogador.pontos),500, 610, 30,WHITE);
-            DrawText(TextFormat("nivel: %d",numeroMapa), 200, 650, 30,WHITE);
-            DrawText(TextFormat("gemas: %d/%d",jogador.esmeraldas,esmeralda_n), 500, 650, 30,WHITE);
-            DrawTexture(jogadorText, jogador.posicao.x, jogador.posicao.y, WHITE); //Desenha o jogador, em função da posição dele
-            if (tiro.visivel == 1){ //Se o tiro estiver visivel, o desenha.
-                DrawTexture(tiroText, tiro.x, tiro.y, WHITE);
-            }
-            for (i=0; i<toupeira_n; i++){ //Desenha cada uma das toupeiras.
-                if (toupeiras[i].posicao.visivel == 1){
-                    DrawTexture(toupeiraText, toupeiras[i].posicao.x, toupeiras[i].posicao.y, WHITE);
-                }
-            }
-            if (menu == 1){
-                DrawTexture(menuText, 250, 50, WHITE);
-                DrawText("Novo jogo [N]", 330, 130, 29,WHITE);
-                DrawText("Carregar jogo [C]", 330, 230, 29,WHITE);
-                DrawText("Salvar jogo [S]", 330, 330, 29,WHITE);
-                DrawText("Sair sem salvar [Q]", 330, 430, 29,WHITE);
-                DrawText("Voltar [v]", 330, 530, 29,WHITE);
-            }
+            DrawText(TextFormat("Pontuacao: %d", jogador.pontos), 140, 500, 25,WHITE);
             EndDrawing();
+        }
     }
     CloseWindow();
-
     return 0;
 }

@@ -353,6 +353,7 @@ int main(){
     int mensagem;
     int velocidade = 10;
     int inicio = 0;
+    Image icone;
     Vector2 posicaoVisao;
     jogador.gameOver = 0;
     jogador.ganhou = 0;
@@ -361,6 +362,7 @@ int main(){
     jogador.pontos = 0;
     srand(time(NULL));
     mensagem = GetRandomValue(0,9);
+
 
     leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //Função de inicialização
 
@@ -379,6 +381,8 @@ int main(){
     tiroText = LoadTexture("sprites/projetil.png");
     gameOverText = LoadTexture("sprites/gameOver.png");
     splashScreen = LoadTexture("sprites/splashScreen.png");
+    icone = LoadImage("sprites/toupeira.png");
+    SetWindowIcon(icone);
 
 
     while (!WindowShouldClose()){ //Loop principal

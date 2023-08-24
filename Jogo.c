@@ -137,7 +137,6 @@ int podeMoverJ(JOGADOR *jogador, int largura, int altura, char mapa[MAX_LINHAS][
     }
     if (mapa[posFimY][posFimX] == 'E'){
         jogador->powerup = 1;
-        printf("POWERUPINICIO\n");//Debug
         mapa[posFimY][posFimX] = ' '; //Faz com que o powerup suma do mapa ao ser coletado
     }
     if (mapa[posFimY][posFimX] == 'A'){
@@ -240,6 +239,7 @@ int tiroColisao(POSICAO tiro, char mapa[MAX_LINHAS][MAX_COLUNAS], TOUPEIRA toupe
 }
 
 char funcionaMenu(int *menu){
+
     if (IsKeyPressed(KEY_N)){ //novo jogo
         return 'N';
     }
@@ -254,6 +254,7 @@ char funcionaMenu(int *menu){
     }
     if (IsKeyPressed(KEY_V)) *menu = 0;
 }
+
 void pressionaTecla(JOGADOR *jogador, POSICAO *tiro, int *menu ){
 
     //Essa função atualiza as informações de deslocamento a partir de qual tecla foi clicada pelo jogador.
@@ -290,7 +291,7 @@ void pressionaTecla(JOGADOR *jogador, POSICAO *tiro, int *menu ){
 
         }
 
-int salvaJogo(JOGADOR jogador, int n_toupeiras, TOUPEIRA toupeira[], char mapa[], int numeroMapa, int n_esmeraldas){
+int salvaJogo(JOGADOR jogador, int n_toupeiras, TOUPEIRA toupeira[], char mapa[MAX_LINHAS][MAX_COLUNAS], int numeroMapa, int n_esmeraldas, int velocidade){
     FILE *arq;
     int i;
 
@@ -299,24 +300,22 @@ int salvaJogo(JOGADOR jogador, int n_toupeiras, TOUPEIRA toupeira[], char mapa[]
         return 0;
     }else{
         fwrite(&jogador, sizeof(JOGADOR), 1, arq);
-        printf("ntoupeiras %d", n_toupeiras);
         fwrite(mapa, sizeof(char), MAX_COLUNAS*MAX_LINHAS, arq);
         fwrite(&n_toupeiras, sizeof(int), 1, arq);
-       // printf("ntoupeiras %d", *n_toupeiras);
-        for (i=0; i<n_toupeiras; i++){
+        for (i=0; i>n_toupeiras; i++){
             fwrite(&toupeira[i], sizeof(TOUPEIRA), 1, arq);
         }
         fwrite(&numeroMapa, sizeof(int), 1, arq);
         fwrite(&n_esmeraldas, sizeof(int), 1, arq);
+        fwrite(&velocidade, sizeof(int), 1, arq);
         fclose(arq);
         return 1;
     }
 }
 
-int carregaJogo(JOGADOR *jogador, int *n_toupeiras, TOUPEIRA toupeira[], char mapa[MAX_LINHAS][MAX_COLUNAS], int *numeroMapa, int *n_esmeraldas){
+int carregaJogo(JOGADOR *jogador, int *n_toupeiras, TOUPEIRA toupeira[], char mapa[MAX_LINHAS][MAX_COLUNAS], int *numeroMapa, int *n_esmeraldas, int *velocidade){
     int i, j;
     FILE *arq;
-    int numeromapa2;
 
     if ((arq = fopen("save.txt", "rb")) == NULL){
         printf("\nErro ao carregar!\n");
@@ -324,19 +323,14 @@ int carregaJogo(JOGADOR *jogador, int *n_toupeiras, TOUPEIRA toupeira[], char ma
         return 0;
     }else{
         fread(jogador, sizeof(JOGADOR), 1 ,arq);
-        for (i = 0; i<MAX_LINHAS; i++){
-                for(j = 0; j<MAX_COLUNAS; j++){
-                    fread(&mapa[i][j], sizeof(char), 1, arq);
-                }
-            }
+        fread(mapa, sizeof(char), MAX_COLUNAS*MAX_LINHAS, arq);
         fread(n_toupeiras, sizeof(int), 1, arq);
-        for(i = 0; i<n_toupeiras; i++){
+        for(i = 0; i>n_toupeiras; i++){
             fread(&toupeira[i], sizeof(TOUPEIRA), 1, arq);
         }
-        fread(&numeromapa2, sizeof(int), 1, arq);
+        fread(numeroMapa, sizeof(int), 1, arq);
         fread(n_esmeraldas, sizeof(int), 1, arq);
-        printf("numeromapa %d\n", numeromapa2);
-        //printf("ESMERALDA %d\n", *n_esmeraldas);
+        fread(velocidade, sizeof(int), 1, arq);
     }
     fclose(arq);
     return 1;
@@ -357,7 +351,7 @@ int main(){
     int numeroMapa = 1;
     int menu = 0;
     int mensagem;
-    int velocidade = 30;
+    int velocidade = 10;
     int inicio = 0;
     Vector2 posicaoVisao;
     jogador.gameOver = 0;
@@ -372,7 +366,6 @@ int main(){
 
     InitWindow(LARGURA, ALTURA, "SpaceSpelunker");
     SetTargetFPS(60);
-
     jogadorText = LoadTexture("sprites/andando.png");
     toupeiraText = LoadTexture("sprites/toupeira.png");
     pedraText = LoadTexture("sprites/pedra.png");
@@ -391,8 +384,11 @@ int main(){
     while (!WindowShouldClose()){ //Loop principal
         posicaoVisao.x = jogador.posicao.x+(LADO/2); //centro do jogador
         posicaoVisao.y = jogador.posicao.y+(LADO/2);
-        if (inicio == 0){
+        if (inicio == 0){ //Tela inicial. Mostra uma arte com o titulo do jogo (Créditos: Álvaro Guglielmin Becker, muito obrigado! <3 E permite que o jogador inicie um novo jogo, ou carregue um save.
             if (IsKeyPressed(KEY_ENTER)){
+                inicio = 1;
+            }
+            if (IsKeyPressed(KEY_C) && carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade) == 1){
                 inicio = 1;
             }
             BeginDrawing();
@@ -409,7 +405,6 @@ int main(){
                         toupeira_n = 0;
                         tiro.visivel = 0;
                         numeroMapa++; //numero do mapa/fase aumenta
-                        printf("nuemromapa++ %d\n", numeroMapa);
                         velocidade -= 2; //Velocidade das toupeiras aumentam a cada fase
                         sprintf(nomeMapa,"mapa%d.txt",numeroMapa); //nome do proximo mapa é gerado
                         if (!(leMapa(nomeMapa, mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n))){ //le o mapa, atualiza as informações contidas nele, e volta pro loop principal do jogo
@@ -464,20 +459,40 @@ int main(){
                     if(tempoPowerup == 180){ //O jogo roda a 60FPS, então 3 segundos se referem a 180 frames. O contador aumenta 1 a cada frame, então quando ele chega a 180 ele tem que parar e desativar o powerup.
                         jogador.powerup = 0;
                         tempoPowerup = 0;
-                        printf("FIMPOWERUP\n"); //Debug
                     }
                     if (tempoToupeira == velocidade) tempoToupeira = 0; //Reseta o timer da velocidade das toupeiras, e aumenta uma unidade a cada ciclo do loop principal.
                         tempoToupeira++;
                     }
                     if (menu == 1) {
                         if (funcionaMenu(&menu) == 'S'){
-                            salvaJogo(jogador, toupeira_n, toupeiras, mapa, numeroMapa, esmeralda_n);
+                            salvaJogo(jogador, toupeira_n, toupeiras, mapa, numeroMapa, esmeralda_n, velocidade);
                             menu = 0;
                         }
                         else if (funcionaMenu(&menu) == 'C'){
-                            carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n);
+                            carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade);
                             menu = 0;
-
+                        }
+                        else if (funcionaMenu(&menu) == 'Q'){
+                            return 0;
+                        }
+                        else if (funcionaMenu(&menu) == 'N'){
+                            jogador.gameOver = 0;
+                            jogador.ganhou = 0;
+                            jogador.vidas = 3;
+                            tiro.visivel = 0;
+                            jogador.pontos = 0;
+                            jogador.esmeraldas = 0;
+                            velocidade = 10;
+                            tempoToupeira = 0;
+                            tempoPowerup = 0;
+                            toupeira_n = 0;
+                            esmeralda_n = 0;
+                            jogador.powerup = 0;
+                            menu = 0;
+                            jogador.ganhou = 0;
+                            leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n);
+                            jogador.gameOver = 0;
+                            menu = 0;
                         }
                     }
                     BeginDrawing(); //Inicio da interface
@@ -492,9 +507,8 @@ int main(){
                             DrawTexture(toupeiraText, toupeiras[i].posicao.x, toupeiras[i].posicao.y, WHITE);
                         }
                     }
-                    if (jogador.powerup == 0){
-                       // DrawRing(posicaoVisao, 3*LADO, 2000, 45, 405, 0, BLACK);
-                        //DrawRing(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color);
+                    if (jogador.powerup == 0){ //Se o jogador não tiver o powerup, bloqueia sua visão
+                        DrawRing(posicaoVisao, 3*LADO, 2000, 45, 405, 0, BLACK);
                     }
 
                     //Desenha as informações sobre o jogo:
@@ -546,7 +560,31 @@ int main(){
                     DrawText("A missao foi um sucesso!", 140, 400, 25, WHITE);
                 }
                 DrawText(TextFormat("Pontuacao: %d", jogador.pontos), 140, 500, 25,WHITE);
+                DrawText(TextFormat("Carregar save [C]\t\t\tNovo jogo [N]", jogador.pontos), 140, 550, 25,WHITE);
                 EndDrawing();
+                if (IsKeyPressed(KEY_N)){
+                    jogador.gameOver = 0;
+                    jogador.ganhou = 0;
+                    jogador.vidas = 3;
+                    tiro.visivel = 0;
+                    jogador.pontos = 0;
+                    jogador.esmeraldas = 0;
+                    velocidade = 10;
+                    tempoToupeira = 0;
+                    tempoPowerup = 0;
+                    toupeira_n = 0;
+                    esmeralda_n = 0;
+                    jogador.powerup = 0;
+                    menu = 0;
+                    jogador.ganhou = 0;
+                    leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n);
+                    jogador.gameOver = 0;
+                }
+                if (IsKeyPressed(KEY_C)){
+                    carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade);
+                    jogador.ganhou = 0;
+                    jogador.gameOver = 0;
+                }
             }
         }
     }

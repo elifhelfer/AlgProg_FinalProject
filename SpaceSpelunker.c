@@ -292,6 +292,8 @@ void pressionaTecla(JOGADOR *jogador, POSICAO *tiro, int *menu ){
         }
 
 int salvaJogo(JOGADOR jogador, int n_toupeiras, TOUPEIRA toupeira[], char mapa[MAX_LINHAS][MAX_COLUNAS], int numeroMapa, int n_esmeraldas, int velocidade){
+    //Escreve todas as informações importantes para um save em um arquivo de save. Informações da struct jogador, de cada uma das toupeiras, o numero total de toupeiras no mapa,
+    //o numero do mapa/fase, o numero de esmeraldas restantes no mapa.
     FILE *arq;
     int i;
 
@@ -316,6 +318,8 @@ int salvaJogo(JOGADOR jogador, int n_toupeiras, TOUPEIRA toupeira[], char mapa[M
 int carregaJogo(JOGADOR *jogador, int *n_toupeiras, TOUPEIRA toupeira[], char mapa[MAX_LINHAS][MAX_COLUNAS], int *numeroMapa, int *n_esmeraldas, int *velocidade){
     int i, j;
     FILE *arq;
+    //Le todas as informações contidas no save e atualiza elas por ponteiros. Assim que o save é lido, o jogo volta pro seu loop principal e não precisa ler mais nenhuma informação
+    //para funcionar exatamente como no momento em que foi salvo.
 
     if ((arq = fopen("save.txt", "rb")) == NULL){
         printf("\nErro ao carregar!\n");
@@ -343,26 +347,24 @@ int main(){
     int tempoToupeira = 0; //Usado para fazer com que as toupeiras se movam mais devagar
     int tempoPowerup = 0; //Usado para o powerup ficar ativo por apenas 3 segundos
     int toupeira_n = 0; //Numero total de toupeiras no mapa
-    int esmeralda_n = 0;
+    int esmeralda_n = 0; //Numero total de esmeraldas no mapa
     int i,j;
     char mapa[MAX_LINHAS][MAX_COLUNAS];
     char nomeMapa[MAXNOMEMAPA];
-    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText, tiroText, gameOverText, splashScreen;
-    int numeroMapa = 1;
+    Texture2D jogadorText, toupeiraText, pedraText, terraText, fundoText, powerupText, esmeraldaText, ouroText, menuText, baixoText, tiroText, gameOverText, splashScreen; //texturas
+    int numeroMapa = 1; //Ao abrir o jogo e não carregar um save, o numero do mapa inicia em 1
     int menu = 0;
-    int mensagem;
+    int mensagem; //Mensagem de morte, aleatoria.
     int velocidade = 10;
-    int inicio = 0;
-    Image icone;
-    Vector2 posicaoVisao;
+    int inicio = 0; //Se 0, mostra a tela inicial do jogo, com as opções de iniciar novo jogo ou carregar save.
+    Image icone; //icone que aparece no topo da janela
+    Vector2 posicaoVisao; //Struct vector2 para a área de visao do jogador.
     jogador.gameOver = 0;
     jogador.ganhou = 0;
     jogador.vidas = 3;
     tiro.visivel = 0;
     jogador.pontos = 0;
     srand(time(NULL));
-    mensagem = GetRandomValue(0,10);
-
 
     leMapa("mapa1.txt", mapa, &jogador, toupeiras, &toupeira_n, &esmeralda_n); //Função de inicialização
 
@@ -417,6 +419,8 @@ int main(){
                         }
                     }
                     if(jogador.vidas == 0){
+                        mensagem = GetRandomValue(0,10); //Pega um numero aleatorio para mostrar uma mensagem diferente de morte a cada vez que o jogador morre.
+                        jogador.powerup = 0;
                         jogador.gameOver = 1;
                     }
                     pressionaTecla(&jogador, &tiro,&menu); //Atualiza informações de acordo com a tecla pressionada pelo usuario
@@ -463,19 +467,18 @@ int main(){
                         tempoToupeira++;
                     }
                     if (menu == 1) {
-                        if (funcionaMenu(&menu) == 'S'){
+                        if (funcionaMenu(&menu) == 'S'){ //Salva o jogo, sobrescrevendo o save anterior (se existir) ou criando um novo
                             salvaJogo(jogador, toupeira_n, toupeiras, mapa, numeroMapa, esmeralda_n, velocidade);
                             menu = 0;
                         }
-                        else if (funcionaMenu(&menu) == 'C'){
+                        else if (funcionaMenu(&menu) == 'C'){ //Carrega um save
                             carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade);
-                            printf("numero: %d", numeroMapa);
                             menu = 0;
                         }
-                        else if (funcionaMenu(&menu) == 'Q'){
+                        else if (funcionaMenu(&menu) == 'Q'){ //Finaliza o programa, se o jogador desejar sair sem salvar
                             return 0;
                         }
-                        else if (funcionaMenu(&menu) == 'N'){
+                        else if (funcionaMenu(&menu) == 'N'){ //Se o jogador inicializar um novo jogo, todas as variaveis necessarias sao zeradas e o mapa 1 é carregado.
                             jogador.gameOver = 0;
                             jogador.ganhou = 0;
                             jogador.vidas = 3;
@@ -504,12 +507,12 @@ int main(){
                         DrawTexture(tiroText, tiro.x, tiro.y, WHITE);
                     }
                     for (i=0; i<toupeira_n; i++){ //Desenha cada uma das toupeiras.
-                        if (toupeiras[i].posicao.visivel == 1){
+                        if (toupeiras[i].posicao.visivel == 1){ //Só desenha as toupeiras se estiverem vivas/visiveis
                             DrawTexture(toupeiraText, toupeiras[i].posicao.x, toupeiras[i].posicao.y, WHITE);
                         }
                     }
                     if (jogador.powerup == 0){ //Se o jogador não tiver o powerup, bloqueia sua visão
-                        DrawRing(posicaoVisao, 3*LADO, 2000, 45, 405, 0, BLACK);
+                        DrawRing(posicaoVisao, 3*LADO, 2000, 45, 405, 0, BLACK); //Desenha um anel ao redor do jogador, bloqueando sua visão.
                     }
 
                     //Desenha as informações sobre o jogo:
@@ -565,7 +568,7 @@ int main(){
                 DrawText(TextFormat("Pontuacao: %d", jogador.pontos), 140, 500, 25,WHITE);
                 DrawText(TextFormat("Carregar save [C]\t\t\tNovo jogo [N]", jogador.pontos), 140, 550, 25,WHITE);
                 EndDrawing();
-                if (IsKeyPressed(KEY_N)){
+                if (IsKeyPressed(KEY_N)){ //Se o jogador inicializar um novo jogo, todas as variaveis necessarias sao zeradas e o mapa 1 é carregado.
                     jogador.gameOver = 0;
                     jogador.ganhou = 0;
                     jogador.vidas = 3;
@@ -585,7 +588,7 @@ int main(){
                     jogador.gameOver = 0;
                 }
                 if (IsKeyPressed(KEY_C)){
-                    carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade);
+                    carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade); //Se o jogador quiser carregar um save, isso acontece e as condições de gameover e vitoria sao zeradas.
                     jogador.ganhou = 0;
                     jogador.gameOver = 0;
                 }

@@ -1,20 +1,20 @@
 ##############################
-#J   SSSEA      SSSE  A   SSS#
-#    ####       ####      ## #
-#    SSS#SSSESS    #SSSS   # #
-#S#SSESO#SSOSSS    #SOSS   # #
-#S#SSSEO#SOSSSS    #OESST  # #
-#S#######OSSSSS    #######   #
-#E#      T      A    SSO     #
-#A  SSSS       SOSS      ### #
-#   SOOS  #  SSSOOS      # A #
-# SOOSSS  #  SSESSOT     # S #
-#       T #  SSOOSS A SS # E #
-# SSOSSS  #                S #
-# SEOSOS  #  SSSSSS T ########
-# SSOSSS  #  SEOOOS A #   T  #
-#         A  SSSOSS      SSO #
-##########   SSSSSS   ########
-#   SSSOOS          A  SSEOOS#
-# A SSOOSS T SSSESS T  SSSSSS#
+#J S#OOSS   SS#OOOOSS#OSSSOEO#
+#  S#OS  E   T#SSESOS#SSSASSS#
+#   ######    #S     #OO   SS#
+#  A   SS#           ####   S#
+#      SO#     SSS      ##   #
+#SSS     E      ####   T #   #
+#################SSS         #
+#OOS  # SSOOOOE#ES        SSS#
+#S    #   SSOOS#OSS      SSEO#
+## A       SSSS#######   SO###
+#TSS      ######OS       S##S#
+#######        #SS     T ##SO#
+#OS   T  SS  ###### E  #SOOES#
+#OOS      S            #OOOOO#
+#S     E     #    T  SS#######
+#SS #    #####SS    SSO#OOSSS#
+#OSA#   SSSOS#OOSSSESSS#SSASS#
+#OOS#SSSSOOOO#OSSSOOSOOOSSSSS#
 ##############################

@@ -391,7 +391,7 @@ int main(){
         posicaoVisao.x = jogador.posicao.x+(LADO/2); //centro do jogador
         posicaoVisao.y = jogador.posicao.y+(LADO/2);
         if (inicio == 0){ //Tela inicial. Mostra uma arte com o titulo do jogo (Créditos: Álvaro Guglielmin Becker, muito obrigado! <3 E permite que o jogador inicie um novo jogo, ou carregue um save.
-            if (IsKeyPressed(KEY_ENTER)){
+            if (IsKeyPressed(KEY_N)){
                 inicio = 1;
             }
             if (IsKeyPressed(KEY_C) && carregaJogo(&jogador, &toupeira_n, toupeiras, mapa, &numeroMapa, &esmeralda_n, &velocidade) == 1){
@@ -419,7 +419,7 @@ int main(){
                         }
                     }
                     if(jogador.vidas == 0){
-                        mensagem = GetRandomValue(0,10); //Pega um numero aleatorio para mostrar uma mensagem diferente de morte a cada vez que o jogador morre.
+                        mensagem = GetRandomValue(0,11); //Pega um numero aleatorio para mostrar uma mensagem diferente de morte a cada vez que o jogador morre.
                         jogador.powerup = 0;
                         jogador.gameOver = 1;
                     }
@@ -558,7 +558,9 @@ int main(){
                                 break;
                         case 9: DrawText("You tried so hard, and got so far...", 140, 400, 25,WHITE);
                                 break;
-                        case 10: DrawText("Meteu o pé na jaca...", 140, 400, 25,WHITE);
+                        case 10: DrawText("Meteu o pe na jaca...", 140, 400, 25,WHITE);
+                                break;
+                        case 11: DrawText("Peguei um besta!", 140, 400, 25,WHITE);
                                 break;
                     }
                 }

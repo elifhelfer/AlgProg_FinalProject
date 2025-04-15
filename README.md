@@ -11,11 +11,17 @@ text file to the folder, for example, after the player collects all emeralds fro
 as their respective numbers are sequential, one after another (mapa1, mapa2, mapa3, mapa4, mapa5...)
 ### Map making guide:
 \# = Unbreakable wall
+
 J = Player spawn
+
 E = Emerald
+
 S = Breakable wall
+
 O = Gold
+
 T = Mole
+
 A = Flashlight powerup
 
 # How to run it

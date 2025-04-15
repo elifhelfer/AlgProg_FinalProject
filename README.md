@@ -3,7 +3,7 @@
 exploring another planet, gathering emeralds and gold, and slaying the local evil mole population. It showcases the skills in C I learned in this class, such as how to use structs, how to read/write to files and how to use pointers.
 
 # How to play it
-Use arrow keys to move, and press G to shoot. Your shots can kill moles and break brown walls. ESC exits the game.
+Use arrow keys to move, and press G to shoot. Your shots can kill moles and break brown walls. ESC exits the game, and TAB pauses it.
 
 ## Making your own levels
 You can make your own levels! Following this guide on characters, you can type up your own map. The game looks for files named "mapa[number]", with the number refering to the current level. If you add a "mapa4"

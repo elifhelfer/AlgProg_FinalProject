@@ -1,6 +1,6 @@
 # Space Spelunker
 "Space Spelunker" is a simple 2D top-down view game, made using C and the library Raylib in 2023 as a final project for my Algorithms and Programming class. The premise is about an astrounaut
-exploring another planet, gathering emeralds and gold, and slaying the local evil mole population. It showcases the skills in C I learned in this class, such as how to use structs and how to read/write to files.
+exploring another planet, gathering emeralds and gold, and slaying the local evil mole population. It showcases the skills in C I learned in this class, such as how to use structs, how to read/write to files and how to use pointers.
 
 # How to play it
 Use arrow keys to move, and press G to shoot. Your shots can kill moles and break brown walls. ESC exits the game.

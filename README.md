@@ -6,6 +6,10 @@ exploring another planet, gathering emeralds and gold, and slaying the local evi
 - File reading/writing,
 - Graphics, input handling and collision (through Raylib).
 
+
+https://github.com/user-attachments/assets/8965d57e-d119-489f-b181-a12de45e71c1
+
+
 # How to play it
 - **Movement**: Arrow keys  
 - **Shoot**: `G` key  
